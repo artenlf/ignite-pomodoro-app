@@ -86,6 +86,11 @@ useEffect(() => {
   const minutesToShowInScreen = String(calculateMinutesAmount).padStart(2, '0');
   const secondsToShowInScreen = String(calculateSecondsAmount).padStart(2, '0');
 
+  useEffect(() => {
+    if(activeCycle){
+    document.title = `${minutesToShowInScreen}:${secondsToShowInScreen}`
+    }
+  }, [minutesToShowInScreen, secondsToShowInScreen, activeCycle])
 
   const task = watch('task');
   const isSubmitDisabled = !task;
