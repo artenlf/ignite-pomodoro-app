@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form'
 import { differenceInSeconds } from 'date-fns'
 
-import { Play } from 'phosphor-react'
+import { HandPalm, Play } from 'phosphor-react'
 
 import 
 { 
@@ -12,6 +12,7 @@ import
   MinutesAmountInput, 
   SeparatorContainer, 
   StartCountdownButton,
+  StopCountdownButton,
   TaskInput
 } 
   from './styles'
@@ -26,6 +27,8 @@ import
     task: string;
     minutesAmount: number;
     startDate: Date;
+    stopDate?: Date;
+    finishedDate?: Date;
   }
 
 export function Home() {
@@ -44,21 +47,37 @@ export function Home() {
 
 const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
 
+const totalTimeAmountInSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+
 useEffect(() => {
   let interval: number;
 
   if (activeCycle) {
    interval = setInterval(() => {
-      setAmountSecondsPassed(differenceInSeconds
-        (new Date(), activeCycle.startDate),
-      )
+    const secondsDifference = differenceInSeconds(new Date(), activeCycle.startDate)
+      if (secondsDifference >= totalTimeAmountInSeconds) {
+        setCycles((state) => state.map(cycle => {
+          if (cycle.id === activeCycleId) {
+            return {...cycle, finishedDate: new Date()}
+          } else {
+            return cycle
+          }
+        }),
+        )
+        setAmountSecondsPassed(totalTimeAmountInSeconds)
+        clearInterval(interval)
+      } else {
+      setAmountSecondsPassed(secondsDifference)
+      }
+
     }, 1000)
   }
 
   return () => {
     clearInterval(interval);
   }
-}, [activeCycle])
+}, [activeCycle, totalTimeAmountInSeconds, activeCycleId])
+
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -76,9 +95,20 @@ useEffect(() => {
     reset()
   }
 
+  function handleStopCycle () {
+    setCycles((state) => state.map(cycle => {
+      if (cycle.id === activeCycleId) {
+        return {...cycle, stopDate: new Date()}
+      } else {
+        return cycle
+      }
+    }),
+    )
+    setActiveCycleId(null)
+  }
 
-  const timeAmountInSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
-  const currentTimeInSeconds = activeCycle ? timeAmountInSeconds - amountSecondsPassed : 0;
+
+  const currentTimeInSeconds = activeCycle ? totalTimeAmountInSeconds - amountSecondsPassed : 0;
 
   const calculateMinutesAmount = Math.floor(currentTimeInSeconds / 60);
   const calculateSecondsAmount = currentTimeInSeconds % 60;
@@ -104,6 +134,7 @@ useEffect(() => {
             id="task" 
             list="task-suggestions" 
             placeholder="Name your project"
+            disabled={!!activeCycle}
             {... register('task')}
           />
 
@@ -120,8 +151,9 @@ useEffect(() => {
             id="minutesAmount" 
             placeholder="00" 
             step={5} 
-            min={5} 
+            min={1} 
             max={60} 
+            disabled={!!activeCycle}
             {...register('minutesAmount', {valueAsNumber: true})}
           />
 
@@ -135,10 +167,17 @@ useEffect(() => {
           <span>{secondsToShowInScreen[1]}</span>
         </CountdownContainer>
 
+        { activeCycle ? (
+          <StopCountdownButton onClick={handleStopCycle} type="button" >
+          <HandPalm size={24} /> 
+          Stop
+        </StopCountdownButton>
+        ) :
         <StartCountdownButton disabled={isSubmitDisabled} type="submit" >
           <Play size={24} /> 
           Start
         </StartCountdownButton>
+         }
       </form>
     </HomeContainer>
   )
