@@ -1,5 +1,8 @@
-import { Play } from 'phosphor-react'
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form'
+import { differenceInSeconds } from 'date-fns'
+
+import { Play } from 'phosphor-react'
 
 import 
 { 
@@ -18,7 +21,17 @@ import
     minutesAmount: number;
   }
 
+  interface Cycle {
+    id: string;
+    task: string;
+    minutesAmount: number;
+    startDate: Date;
+  }
+
 export function Home() {
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>(
     {
@@ -29,12 +42,46 @@ export function Home() {
     }
 )
 
+const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
+
+useEffect(() => {
+  if (activeCycle) {
+    setInterval(() => {
+      setAmountSecondsPassed(differenceInSeconds
+        (new Date(), activeCycle.startDate),
+      )
+    }, 1000)
+  }
+}, [activeCycle])
+
   function handleCreateNewCycle(data: NewCycleFormData) {
+    const id = String(new Date().getTime())
+    
+    const newCycle: Cycle = {
+      id: id,
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+      startDate: new Date()
+    }
+    setCycles((state) => [...cycles, newCycle])
+    setActiveCycleId(id)
+
     reset()
   }
 
-  const task = watch('task')
-  const isSubmitDiabled = !task
+
+  const timeAmountInSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+  const currentTimeInSeconds = activeCycle ? timeAmountInSeconds - amountSecondsPassed : 0;
+
+  const calculateMinutesAmount = Math.floor(currentTimeInSeconds / 60);
+  const calculateSecondsAmount = currentTimeInSeconds % 60;
+
+  const minutesToShowInScreen = String(calculateMinutesAmount).padStart(2, '0');
+  const secondsToShowInScreen = String(calculateSecondsAmount).padStart(2, '0');
+
+
+  const task = watch('task');
+  const isSubmitDisabled = !task;
 
   return (
     <HomeContainer>
@@ -69,14 +116,14 @@ export function Home() {
           <span>minutes.</span>
         </FormContainer>
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutesToShowInScreen[0]}</span>
+          <span>{minutesToShowInScreen[1]}</span>
           <SeparatorContainer>:</SeparatorContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{secondsToShowInScreen[0]}</span>
+          <span>{secondsToShowInScreen[1]}</span>
         </CountdownContainer>
 
-        <StartCountdownButton disabled={isSubmitDiabled} type="submit" >
+        <StartCountdownButton disabled={isSubmitDisabled} type="submit" >
           <Play size={24} /> 
           Start
         </StartCountdownButton>
