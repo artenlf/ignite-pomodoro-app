@@ -1,12 +1,16 @@
 import { differenceInSeconds } from "date-fns";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useContext } from "react";
 import { CountdownContainer, SeparatorContainer } from "./styles";
 import { CyclesContext } from "../../index";
 
 export function Countdown() {
-  const { activeCycle, activeCycleId, markCurrentCycleAsFinished } =
-    useContext(CyclesContext);
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+  const {
+    activeCycle,
+    activeCycleId,
+    amountSecondsPassed,
+    markCurrentCycleAsFinished,
+    setSecondsPassed,
+  } = useContext(CyclesContext);
 
   const totalTimeAmountInSeconds = activeCycle
     ? activeCycle.minutesAmount * 60
@@ -23,10 +27,10 @@ export function Countdown() {
         );
         if (secondsDifference >= totalTimeAmountInSeconds) {
           markCurrentCycleAsFinished();
-          setAmountSecondsPassed(totalTimeAmountInSeconds);
+          setSecondsPassed(totalTimeAmountInSeconds);
           clearInterval(interval);
         } else {
-          setAmountSecondsPassed(secondsDifference);
+          setSecondsPassed(secondsDifference);
         }
       }, 1000);
     }
@@ -39,6 +43,7 @@ export function Countdown() {
     totalTimeAmountInSeconds,
     activeCycleId,
     markCurrentCycleAsFinished,
+    setSecondsPassed,
   ]);
 
   const currentTimeInSeconds = activeCycle
@@ -48,22 +53,22 @@ export function Countdown() {
   const calculateMinutesAmount = Math.floor(currentTimeInSeconds / 60);
   const calculateSecondsAmount = currentTimeInSeconds % 60;
 
-  const minutesToShowInScreen = String(calculateMinutesAmount).padStart(2, "0");
-  const secondsToShowInScreen = String(calculateSecondsAmount).padStart(2, "0");
+  const minutes = String(calculateMinutesAmount).padStart(2, "0");
+  const seconds = String(calculateSecondsAmount).padStart(2, "0");
 
   useEffect(() => {
     if (activeCycle) {
-      document.title = `${minutesToShowInScreen}:${secondsToShowInScreen}`;
+      document.title = `${minutes}:${seconds}`;
     }
-  }, [minutesToShowInScreen, secondsToShowInScreen, activeCycle]);
+  }, [minutes, seconds, activeCycle]);
 
   return (
     <CountdownContainer>
-      <span>{minutesToShowInScreen[0]}</span>
-      <span>{minutesToShowInScreen[1]}</span>
+      <span>{minutes[0]}</span>
+      <span>{minutes[1]}</span>
       <SeparatorContainer>:</SeparatorContainer>
-      <span>{secondsToShowInScreen[0]}</span>
-      <span>{secondsToShowInScreen[1]}</span>
+      <span>{seconds[0]}</span>
+      <span>{seconds[1]}</span>
     </CountdownContainer>
   );
 }
