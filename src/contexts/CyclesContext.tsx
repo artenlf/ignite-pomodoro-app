@@ -1,18 +1,18 @@
 import {
   createContext,
   ReactNode,
+  useEffect,
   useReducer,
   useState,
-  useEffect,
 } from "react";
 
-import { Cycle, cyclesReducer } from "../reducers/cycles/reducer";
+import { differenceInSeconds } from "date-fns";
 import {
   addNewCycleAction,
   interruptCurrentCycleAction,
   markCurrentCycleAsFinishedAction,
 } from "../reducers/cycles/actions";
-import { differenceInSeconds } from "date-fns";
+import { Cycle, cyclesReducer } from "../reducers/cycles/reducer";
 
 interface CreateCycleData {
   task: string;
@@ -52,6 +52,10 @@ export function CyclesContextProvider({
       if (storedStateAsJSON) {
         return JSON.parse(storedStateAsJSON);
       }
+      return {
+        cycles: [],
+        cycleActiveId: null,
+      };
     }
   );
 
