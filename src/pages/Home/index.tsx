@@ -3,14 +3,14 @@ import { FormProvider, useForm } from "react-hook-form";
 
 import { HandPalm, Play } from "phosphor-react";
 
+import { CyclesContext } from "../../contexts/CyclesContext";
+import { Countdown } from "./components/Countdown";
+import { NewCycleForm } from "./components/NewCycleForm";
 import {
   HomeContainer,
   StartCountdownButton,
   StopCountdownButton,
 } from "./styles";
-import { NewCycleForm } from "./components/NewCycleForm";
-import { Countdown } from "./components/Countdown";
-import { CyclesContext } from "../../contexts/CyclesContext";
 
 interface NewCycleFormData {
   task: string;
